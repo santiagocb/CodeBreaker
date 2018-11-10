@@ -4,7 +4,7 @@ import scala.util.Random
 
 object CodeBreaker {
 
-  var secret = generateSecret()
+  var secret = "1234"
 
   def generateSecret(): String = {
     var key = Range(1, 5)
@@ -15,6 +15,7 @@ object CodeBreaker {
         .map(_ => Random.nextInt(9).toString)
         .mkString("")
     }
+    secret = key
     key
   }
 
