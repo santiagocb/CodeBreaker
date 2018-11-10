@@ -5,8 +5,10 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
-import scala.io.StdIn
+import play.api.libs.json.JsValue
+import play.api.libs.json._
 
+import scala.io.StdIn
 import scala.concurrent.ExecutionContext
 
 object Boot extends App {
@@ -17,17 +19,35 @@ object Boot extends App {
   implicit val executor: ExecutionContext = system.dispatcher
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
+
+
   val route =
     pathPrefix("guess") {
       path(Segment) {
         number => get {
           val result = CodeBreaker.codeBreaker2(number)
+          /*val jsonResponse = Json.parse(
+            s"""
+              {
+                message: "algo",
+                result: $result
+              }
+            """.stripMargin)*/
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"$result"))
         }
       } ~
       post {
-        entity(as[Secret]) {
-          secret => complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Say hello to $secret"))
+        entity(as[String]) {
+          secret =>
+            val json = Json.parse(secret)
+            val value = (json \ "secret").get.as[String]
+            if (value == "")  {
+              CodeBreaker.generateSecret()
+            }
+            else {
+              CodeBreaker.secret = value
+            }
+            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, s"Listo"))
         }
       }
     }
